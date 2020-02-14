@@ -15,6 +15,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -27,7 +28,7 @@ public class App extends Application {
     final short SCENE_WIDTH = 640;
     final short TEXT_SIZE = 24; 
     
-    short ballRadius = 15;
+    short ballRadius = 20;
            
     short ballCenterX = 800;
     byte ballCurrentSpeedX = 3;
@@ -41,21 +42,36 @@ public class App extends Application {
     short imagePosY = (short)((SCENE_HEIGHT-imageHeight)/2);
     byte imageCurrentSpeed = 4;
     byte imageDirection = 0;
-   
-
+    
+    short freeHeight = 4;
+    short freeWidth = 100;
+    short freeHeight2 = 90;
+    short freeWidth2 = 4;
+      
+    //BOLA
+    short freePosY = (short)((SCENE_HEIGHT)/2);
+    byte freeCurrentSpeed = 4;
+    byte freeDirectionY = 0;
+    byte freeDirectionX = 0;
+    short freePosX = (short)(SCENE_WIDTH - SCENE_WIDTH);
+    
+    
     @Override
     public void start(Stage stage) {
         Pane root = new Pane();
         var scene = new Scene(root, 800, 470);
         stage.setScene(scene);
         stage.show();
+        
         //Creacion del fondo
         Image image1 = new Image(getClass().getResourceAsStream("/imagenes/fondo.png"));
         ImageView imageView1 = new ImageView(image1);
         root.getChildren().add(imageView1);
         //Creacion de la Bola
-        Image image2 = new Image(getClass().getResourceAsStream("/imagenes/bola.gif"));
+        Image image2 = new Image(getClass().getResourceAsStream("/imagenes/craft.png"));
         ImageView imageView2 = new ImageView(image2);
+        imageView2.setX(freePosX);
+        imageView2.setY(freePosY);
         root.getChildren().add(imageView2);
         
     //Creación del primer enemigo (figura de bola)
@@ -92,19 +108,23 @@ public class App extends Application {
         root.getChildren().add(circleBall3);
         
         // CONTROL DEL TECLADO
-        scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            public void handle(final KeyEvent keyEvent) {
-                switch(keyEvent.getCode()) {
-                    case UP:
-                        imageDirection = -1;
-                        break;
-                    case DOWN:
-                        imageDirection = 1;
-                        break;
-                }                
-            }
-            
-            
+        scene.setOnKeyPressed((final KeyEvent keyEvent) -> {
+            switch(keyEvent.getCode()) {
+                case UP:
+                    freeDirectionY = -1;
+                    break;
+                case DOWN:
+                    freeDirectionY = 1;
+                    break;  
+                    
+                case RIGHT:
+                    freeDirectionX = 1;
+                    break;  
+                    
+                case LEFT:
+                    freeDirectionX = -1;
+                    break;  
+               }
         });
        
         Timeline timeline = new Timeline (
@@ -119,6 +139,7 @@ public class App extends Application {
                     circleBall3.setCenterY(400);
                     ballCenterX += ballCurrentSpeedX * ballDirectionX;
                     ballCenterY += ballCurrentSpeedY * ballDirectionY;
+                    
                     // Control de rebote horizontal
                     if(ballCenterX >= 870) {
                         ballDirectionX = -1;
@@ -136,20 +157,75 @@ public class App extends Application {
             }
             )
         );
-                
+             
+        //rectangulo ATRAS freezer colision
+        Rectangle rectangle1 = new Rectangle(freeHeight,freeWidth);
+        root.getChildren().add(rectangle1);
+        rectangle1.setFill(Color.YELLOW);
+        rectangle1.setX(freePosX);
+        rectangle1.setY(freePosY); 
+        
+        //rectangulo ADELANTE freezer colision
+        Rectangle rectangle2 = new Rectangle(freeHeight,freeWidth);
+        root.getChildren().add(rectangle2);
+        rectangle2.setFill(Color.RED);
+        rectangle2.setX(freePosX + 90);
+        rectangle2.setY(freePosY); 
+        
+        
+        
+        //rectangulo ARRIBA freezer colision
+        Rectangle rectangle3 = new Rectangle(freeHeight2,freeWidth2);
+        root.getChildren().add(rectangle3);
+        rectangle3.setFill(Color.GREEN);
+        rectangle3.setX(freePosX);
+        rectangle3.setY(freePosY + 100); 
+        
+        //rectangulo ABAJO freezer colision
+        Rectangle rectangle4 = new Rectangle(freeHeight2,freeWidth2);
+        root.getChildren().add(rectangle4);
+        rectangle4.setFill(Color.BLUE);
+        rectangle4.setX(freePosX);
+        rectangle4.setY(freePosY); 
+        
+        
             //Animacion de la Bola   
-            imageView2.setY(imagePosY);
-                    imagePosY += imageCurrentSpeed * imageDirection;
-                    if(imagePosY <= 0 || imagePosY >= SCENE_HEIGHT-imageHeight) {
-                        imageDirection = 0;
-                    }
-                    if(imagePosY <= 0) {
-                        imageDirection = 0;
-                        imagePosY = 0;
-                    } else if (imagePosY >= SCENE_HEIGHT-imageHeight) {
-                        imageDirection = 0;
-                        imagePosY = (short)(SCENE_HEIGHT-imageHeight);
-                    }
+            // ANIMACIÓN DE Free
+                rectangle1.setY(freePosY);
+                rectangle1.setX(freePosX); 
+                rectangle2.setX(freePosX + 90);
+                rectangle2.setY(freePosY);
+                rectangle3.setY(freePosY + 100);
+                rectangle3.setX(freePosX); 
+                rectangle4.setX(freePosX);
+                rectangle4.setY(freePosY);
+                imageView2.setY(freePosY);
+                imageView2.setX(freePosX);
+                freePosY += freeCurrentSpeed * freeDirectionY;
+                freePosX += freeCurrentSpeed * freeDirectionX;
+                if(freePosY <= 0 || freePosY >= SCENE_HEIGHT) {
+                    freeDirectionY = 0;
+                }
+                if(freePosX <= 0 || freePosX >= SCENE_WIDTH) {
+                    freeDirectionX = 0;
+                }
+                if(freePosY <= 0) {
+                    freeDirectionY = 0;
+                    freePosY = 0;
+                } else if (freePosY >= SCENE_HEIGHT) {
+                    freeDirectionY = 0;
+                    freePosY = (short)(SCENE_HEIGHT);
+                }
+                
+                
+                if(freePosX <= 0) {
+                    freeDirectionX = 0;
+                    freePosX = 0;
+                } else if (freePosX >= SCENE_WIDTH) {
+                    freeDirectionX = 0;
+                    freePosX = (short)(SCENE_WIDTH);
+                }
+                
                 
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
